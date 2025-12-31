@@ -1,0 +1,78 @@
+# main_eeg.py
+import argparse
+import os
+import sys
+
+# Add root to PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import the new EEG experiment class
+from exps import EEGDenoisingExperiment
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="EEG Denoising Experiment")
+
+    parser.add_argument(
+        "--split_dir",
+        type=str,
+        default="./eeg_data_split",
+        help="Path to split directory containing data splits and files",
+    )
+
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="U-Net",
+        choices=["U-Net", "DANCER", "ACDAE", "DACNN"],
+        help="Model architecture to use",
+    )
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument(
+        "--noise_type",
+        type=str,
+        default="mog",
+        choices=["emg", "eog", "mog"],
+        help="Type of noise to denoise: EMG, EOG, or mixed (MOG)",
+    )
+    parser.add_argument(
+        "--snr_db",
+        type=int,
+        default=0,
+        choices=[-4, -2, 0, 2, 4],
+        help="Signal-to-Noise Ratio (in dB)",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed (42 is the answer to life, the universe and everything)",
+    )
+    parser.add_argument(
+        "--gpu_id", type=int, default=0, help="GPU ID to use for training/testing"
+    )
+    parser.add_argument(
+        "--checkpoint_dir", type=str, default="./checkpoints/", help="Directory to save/load model checkpoints"
+    )
+    parser.add_argument(
+        "--mode", type=str, default="train", choices=["train", "test"], help="Run mode"
+    )
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    exp = EEGDenoisingExperiment(args)
+
+    if args.mode == "train":
+        exp.train()
+    elif args.mode == "test":
+        exp.test()
+
+
+if __name__ == "__main__":
+    main()
+    
